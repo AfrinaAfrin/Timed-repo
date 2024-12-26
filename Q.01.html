@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debounce and Throttle Demo</title>
+    <style>
+         
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 30px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #counter {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Debounce and Throttle Demo</h1>
+
+        
+        <input type="text" id="searchBar" placeholder="Search for a movie..." />
+
+         
+        <div id="results"></div>
+
+        <br>
+
+        
+        <button id="clickButton">Click Me!</button>
+        <div id="counter">Clicks: 0</div>
+    </div>
+
+    <script>
+        
+        const API_KEY = 'API_KEY_06789';  
+        const MOVIE_API_URL = 'https://api.themoviedb.org/3/search/movie?api_key=' + API_KEY + '&query=';
+
+        
+        const searchBar = document.getElementById('searchBar');
+        const resultsDiv = document.getElementById('results');
+        const clickButton = document.getElementById('clickButton');
+        const counterDiv = document.getElementById('counter');
+
+        
+        let debounceTimeout;
+        function debounceSearch(callback, delay) {
+            return function (...args) {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    callback(...args);
+                }, delay);
+            };
+        }
+
+       
+        async function fetchMovies(query) {
+            if (!query) {
+                resultsDiv.innerHTML = 'No results found';
+                return;
+            }
+
+            const response = await fetch(MOVIE_API_URL + query);
+            const data = await response.json();
+
+            if (data.results && data.results.length > 0) {
+                const movies = data.results.map(movie => `<p>${movie.title}</p>`).join('');
+                resultsDiv.innerHTML = movies;
+            } else {
+                resultsDiv.innerHTML = 'No results found';
+            }
+        }
+
+         
+        let lastClickTime = 0;
+        function throttleClicks(callback, limit) {
+            return function (...args) {
+                const now = Date.now();
+                if (now - lastClickTime >= limit) {
+                    callback(...args);
+                    lastClickTime = now;
+                }
+            };
+        }
+
+         
+        let clickCount = 0;
+        function incrementClickCounter() {
+            clickCount++;
+            counterDiv.innerHTML = `Clicks: ${clickCount}`;
+        }
+
+         
+        searchBar.addEventListener('input', debounceSearch(fetchMovies, 300));  // Debouncing search
+        clickButton.addEventListener('click', throttleClicks(incrementClickCounter, 2000));  // Throttling click counter
+    </script>
+</body>
+</html>
